@@ -9,6 +9,9 @@ import (
 	"strings"
 )
 
+type InFilePath = string
+type OutFilePath = string
+
 type ITask interface {
 	Run(data []string) string
 }
@@ -28,38 +31,59 @@ func NewTester(task ITask, path string) Tester {
 }
 
 func (t *Tester) RunTest() {
-	nr := 0
+	testNumber := 0
 	finish := false
 
 	for !finish {
-		inFilePath := filepath.FromSlash(fmt.Sprintf("%s/test.%d.in", t.path, nr))
-		outFilePath := filepath.FromSlash(fmt.Sprintf("%s/test.%d.out", t.path, nr))
+		inFilePath := filepath.FromSlash(fmt.Sprintf("%s/test.%d.in", t.path, testNumber))
+		outFilePath := filepath.FromSlash(fmt.Sprintf("%s/test.%d.out", t.path, testNumber))
 
-		fmt.Printf("Start test %d\n", nr)
+		fmt.Printf("Start test %d\n", testNumber)
 
 		if isFileExist(inFilePath) && isFileExist(outFilePath) {
-			isSuccess, err := execute(t.task, inFilePath, outFilePath)
-
-			if err != nil {
-				fmt.Printf("Test %d returned an error: %s\n", nr, err)
-			}
-
-			if isSuccess {
-				fmt.Printf("Test %d is successful\n", nr)
-			} else {
-				fmt.Printf("Test %d failed\n", nr)
-			}
-			fmt.Println("=========================")
+			t.runTest(inFilePath, outFilePath, testNumber)
 		} else {
 			finish = true
 		}
 
-		nr += 1
+		testNumber += 1
 	}
 
 }
 
-func execute(task ITask, in string, out string) (bool, error) {
+func (t *Tester) RunTestWithCount(count int) {
+	for i := 0; i < count; i++ {
+		inFile, outFile := t.getTestFiles(i)
+
+		if isFileExist(inFile) && isFileExist(outFile) {
+			t.runTest(inFile, outFile, i)
+		}
+	}
+}
+
+func (t *Tester) getTestFiles(testNumber int) (InFilePath, OutFilePath) {
+	inFilePath := filepath.FromSlash(fmt.Sprintf("%s/test.%d.in", t.path, testNumber))
+	outFilePath := filepath.FromSlash(fmt.Sprintf("%s/test.%d.out", t.path, testNumber))
+
+	return inFilePath, outFilePath
+}
+
+func (t *Tester) runTest(in InFilePath, out OutFilePath, testNumber int) {
+	isSuccess, err := t.execute(in, out)
+
+	if err != nil {
+		fmt.Printf("Test %d returned an error: %s\n", testNumber, err)
+	}
+
+	if isSuccess {
+		fmt.Printf("Test %d is successful\n", testNumber)
+	} else {
+		fmt.Printf("Test %d failed\n", testNumber)
+	}
+	fmt.Println("=========================")
+}
+
+func (t *Tester) execute(in string, out string) (bool, error) {
 	inData, err := readAllLine(in)
 
 	if err != nil {
@@ -74,7 +98,7 @@ func execute(task ITask, in string, out string) (bool, error) {
 		return false, err
 	}
 
-	result := task.Run(inData)
+	result := t.task.Run(inData)
 
 	fmt.Printf("Got %s\n", result)
 
