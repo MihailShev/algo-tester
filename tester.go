@@ -7,6 +7,7 @@ import (
 	"os"
 	"path/filepath"
 	"strings"
+	"time"
 )
 
 type InFilePath = string
@@ -55,6 +56,8 @@ func (t *Tester) RunTestWithCount(count int) {
 	for i := 0; i < count; i++ {
 		inFile, outFile := t.getTestFiles(i)
 
+		fmt.Printf("Start test %d\n", i)
+
 		if isFileExist(inFile) && isFileExist(outFile) {
 			t.runTest(inFile, outFile, i)
 		}
@@ -69,6 +72,8 @@ func (t *Tester) getTestFiles(testNumber int) (InFilePath, OutFilePath) {
 }
 
 func (t *Tester) runTest(in InFilePath, out OutFilePath, testNumber int) {
+	fmt.Printf("Start test %d", testNumber)
+
 	isSuccess, err := t.execute(in, out)
 
 	if err != nil {
@@ -98,10 +103,13 @@ func (t *Tester) execute(in string, out string) (bool, error) {
 		return false, err
 	}
 
+	startTime := time.Now()
 	result := t.task.Run(inData)
+	endTime := time.Since(startTime)
 
 	fmt.Printf("Got %s\n", result)
 
+	fmt.Printf("Execution time %v\n", endTime)
 	return expect == result, nil
 }
 
