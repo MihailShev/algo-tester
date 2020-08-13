@@ -72,8 +72,6 @@ func (t *Tester) getTestFiles(testNumber int) (InFilePath, OutFilePath) {
 }
 
 func (t *Tester) runTest(in InFilePath, out OutFilePath, testNumber int) {
-	fmt.Printf("Start test %d", testNumber)
-
 	isSuccess, err := t.execute(in, out)
 
 	if err != nil {
