@@ -54,13 +54,17 @@ func (t *Tester) RunTest() {
 
 func (t *Tester) RunTestWithCount(count int) {
 	for i := 0; i < count; i++ {
-		inFile, outFile := t.getTestFiles(i)
+		t.RunTestNum(i)
+	}
+}
 
-		fmt.Printf("Start test %d\n", i)
+func (t *Tester) RunTestNum(testNum int) {
+	inFile, outFile := t.getTestFiles(testNum)
 
-		if isFileExist(inFile) && isFileExist(outFile) {
-			t.runTest(inFile, outFile, i)
-		}
+	fmt.Printf("Start test %d\n", testNum)
+
+	if isFileExist(inFile) && isFileExist(outFile) {
+		t.runTest(inFile, outFile, testNum)
 	}
 }
 
