@@ -4,6 +4,7 @@ import (
 	"bufio"
 	"fmt"
 	"io/ioutil"
+	"math"
 	"os"
 	"path/filepath"
 	"strings"
@@ -12,6 +13,8 @@ import (
 
 type InFilePath = string
 type OutFilePath = string
+
+const MaxOutputLen = 250
 
 type ITask interface {
 	Run(data []string) string
@@ -99,7 +102,7 @@ func (t *Tester) execute(in string, out string) (bool, error) {
 
 	expect, err := readExpect(out)
 
-	fmt.Printf("Expect %s\n", expect)
+	fmt.Printf("Expect %s\n", cutStr(MaxOutputLen, expect))
 
 	if err != nil {
 		return false, err
@@ -109,7 +112,7 @@ func (t *Tester) execute(in string, out string) (bool, error) {
 	result := t.task.Run(inData)
 	endTime := time.Since(startTime)
 
-	fmt.Printf("Got %s\n", result)
+	fmt.Printf("Got %s\n", cutStr(MaxOutputLen, result))
 
 	fmt.Printf("Execution time %v\n", endTime)
 	return expect == result, nil
@@ -126,6 +129,7 @@ func readAllLine(path string) ([]string, error) {
 
 	lines := make([]string, 0)
 	scanner := bufio.NewScanner(file)
+	scanner.Buffer(make([]byte, 0), math.MaxInt64)
 
 	for scanner.Scan() {
 		lines = append(lines, scanner.Text())
@@ -155,4 +159,12 @@ func isFileExist(path string) bool {
 	}
 
 	return true
+}
+
+func cutStr(maxLen int, str string) string {
+	if len(str) > maxLen {
+		return fmt.Sprintf("%.*s..", maxLen, str)
+	}
+
+	return str
 }
